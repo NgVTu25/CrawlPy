@@ -1,8 +1,0 @@
-Question: What do you study?
-Band: 5.0
-Topic: Work/Study
-
-Sample Answer:
-Well, um, I study... I study Business. Yeah, Business Management. I am, um, a student at university. It's... it's quite hard, sometimes.
-
-Keywords: study, business, it's, well, yeah, management, student, university, quite, hard

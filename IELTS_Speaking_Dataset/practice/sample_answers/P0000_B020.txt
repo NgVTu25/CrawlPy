@@ -1,8 +1,0 @@
-Question: Where is your hometown?
-Band: 2.0
-Topic: Hometown
-
-Sample Answer:
-"Um... my hometown... uh... is Ho Chi Minh City. Yes. It is a big city. In... um... Vietnam. I live there with my family. It is always hot there. And many people. I like my city but... uh... sometimes very very busy. Too much traffic. Yes."
-
-Keywords: city, there, very, hometown, minh, vietnam, live, family, always, many
