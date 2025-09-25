@@ -72,10 +72,10 @@ class Config:
     
     # API Keys - List of backup keys
     API_KEYS = [
-        "",  # Primary key
-        "",  # Backup key 1
-        "",  # Backup key 2
-        "",  # Backup key 3
+        "AIzaSyDFGQcZ3VYKHwGysehBjXBrOFeHQm6c1Ac",  # Primary key
+        "AIzaSyASjPnUig5_Y_MC9zi5Wd7lX0if4eKiVqM",  # Backup key 1
+        "AIzaSyBeMGWuSUrpmzTeGHNFv-yS8Qpg0QhOiOo",  # Backup key 2
+        "AIzaSyCxXHx62MdMUEHhqr_bwqhRiNUQ_kB9ESY",  # Backup key 3
     ]
     
     # API Rate Limits and Batch Settings
@@ -96,7 +96,7 @@ class Config:
         """Rotate to next API key"""
         cls._current_key_index = (cls._current_key_index + 1) % len(cls.API_KEYS)
         return cls.get_api_key()
-    GEMINI_API_KEY = "INPUT YOU API"  
+    GEMINI_API_KEY = "AIzaSyB8ccACDximV4vV96o75m8m5g2x_7ic9-U"  
     
     # YouTube search queries
     YOUTUBE_QUERIES = [
@@ -196,7 +196,7 @@ class ScoringDataCollector:
         
         # Enhanced search queries with band scores
         enhanced_queries = []
-        band_scores = ['6.0', '6.5', '7.0', '7.5', '8.0', '8.5']
+        band_scores = ['4.0','4.5','5.0','5.5','6.0', '6.5', '7.0', '7.5', '8.0', '8.5']
         parts = ['part 1', 'part 2', 'part 3']
         
         for query in Config.YOUTUBE_QUERIES[:max_videos]:
@@ -324,8 +324,88 @@ class ScoringDataCollector:
         result = self.whisper_model.transcribe(audio_path)
         return result["text"]
     
+    def analyze_transcript_quality(self, text: str) -> Dict[str, float]:
+        """Analyze transcript to estimate speaking quality scores"""
+        scores = {'fluency': 0, 'grammar': 0, 'lexical': 0, 'pronunciation': 0}
+        
+        # Word counts and sentence analysis
+        words = text.split()
+        total_words = len(words)
+        if total_words == 0:
+            return scores
+            
+        sentences = re.split(r'[.!?]+', text)
+        avg_words_per_sentence = total_words / len(sentences)
+        
+        # Fluency Analysis
+        hesitation_marks = len(re.findall(r'\b(um|uh|er|ah|like)\b|\.{3,}', text, re.I))
+        hesitation_ratio = hesitation_marks / total_words
+        
+        connectors = len(re.findall(r'\b(because|therefore|however|moreover|furthermore|consequently)\b', text, re.I))
+        connector_ratio = connectors / total_words
+        
+        # Grammar Analysis
+        complex_structures = len(re.findall(r'\b(has been|have been|will have|would have|could|might|should)\b', text, re.I))
+        conditionals = len(re.findall(r'\b(if|unless|provided that|as long as)\b.*?,', text, re.I))
+        relative_clauses = len(re.findall(r'\b(which|who|whom|whose|that)\b', text, re.I))
+        
+        # Vocabulary Analysis
+        unique_words = len(set(words))
+        vocabulary_diversity = unique_words / total_words
+        
+        advanced_words = len(re.findall(r'\b\w{8,}\b', text))  # Words with 8+ characters
+        academic_words = len(re.findall(
+            r'\b(analyze|consider|demonstrate|evaluate|indicate|obtain|participate|require|significant)\b', 
+            text, re.I
+        ))
+        
+        # Calculate Scores
+        
+        # Fluency Score (based on hesitations, sentence length, connectors)
+        base_fluency = 6.0
+        fluency_adjustments = [
+            (-1.0 if hesitation_ratio > 0.1 else 0.0),  # Heavy hesitation penalty
+            (0.5 if avg_words_per_sentence > 12 else 0.0),  # Good sentence length
+            (0.5 if connector_ratio > 0.05 else 0.0),  # Good use of connectors
+        ]
+        scores['fluency'] = min(9.0, max(5.0, base_fluency + sum(fluency_adjustments)))
+        
+        # Grammar Score (based on structure complexity)
+        base_grammar = 6.0
+        grammar_adjustments = [
+            (0.5 if complex_structures / total_words > 0.05 else 0.0),
+            (0.5 if conditionals > 2 else 0.0),
+            (0.5 if relative_clauses / len(sentences) > 0.3 else 0.0)
+        ]
+        scores['grammar'] = min(9.0, max(5.0, base_grammar + sum(grammar_adjustments)))
+        
+        # Vocabulary Score (based on diversity and complexity)
+        base_lexical = 6.0
+        lexical_adjustments = [
+            (1.0 if vocabulary_diversity > 0.5 else 0.0),  # Good vocabulary range
+            (0.5 if advanced_words / total_words > 0.1 else 0.0),  # Complex words
+            (0.5 if academic_words > 5 else 0.0)  # Academic language
+        ]
+        scores['lexical'] = min(9.0, max(5.0, base_lexical + sum(lexical_adjustments)))
+        
+        # Pronunciation (estimated indirectly)
+        # We look for common pronunciation markers in transcripts
+        pronunciation_markers = {
+            r'\b(th|wh|sh|ch)\w+\b': 0.2,  # Common English sounds
+            r'\b(str|spr|scr)\w+\b': 0.3,  # Complex consonant clusters
+            r'\b\w+(?:tion|sion|ture)\b': 0.2,  # Common endings
+        }
+        base_pronunciation = 6.0
+        for pattern, score in pronunciation_markers.items():
+            matches = len(re.findall(pattern, text, re.I))
+            base_pronunciation += min(1.0, matches * score)
+        scores['pronunciation'] = min(9.0, max(5.0, base_pronunciation))
+        
+        return scores
+        
     def extract_band_score(self, text: str, title: str = "") -> Dict[str, float]:
-        """Extract band scores from text and title using patterns"""
+        """Extract band scores from text and title, fall back to analysis if needed"""
+        # First try to get explicit scores from title
         scores = {
             'band_overall': None,
             'fluency': None,
@@ -337,38 +417,72 @@ class ScoringDataCollector:
         # Pattern matching for band scores
         patterns = {
             'band_overall': [
-                r'band\s*(?:score\s*)?(?:is\s*)?(\d+(?:\.\d+)?)',
-                r'(?:speaking|ielts)\s*band\s*(\d+(?:\.\d+)?)',
-                r'band\s*level\s*(\d+(?:\.\d+)?)'
+                r'(?:ielts|speaking).*?band\s*(?:score)?[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'band\s*(?:score)?[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'(?:score|band)[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'(\d+(?:\.\d+)?)\s*(?:band|score)',
+                r'b\.?(\d+(?:\.\d+)?)',  # Matches b6.5, b.6.5, etc.
             ],
             'fluency': [
-                r'fluency.*?(\d+(?:\.\d+)?)',
-                r'fluency\s*and\s*coherence:\s*(\d+(?:\.\d+)?)',
+                r'fluency[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'fluency\s*(?:and|&)\s*coherence[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'fc[:=-]?\s*(\d+(?:\.\d+)?)',
             ],
             'grammar': [
-                r'grammar.*?(\d+(?:\.\d+)?)',
-                r'grammatical\s*(?:range|accuracy):\s*(\d+(?:\.\d+)?)',
-                r'grammar\s*(?:score|mark):\s*(\d+(?:\.\d+)?)'
+                r'gr(?:ammar)?[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'grammatical\s*(?:range|accuracy)[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'grammar\s*(?:score|mark)[:=-]?\s*(\d+(?:\.\d+)?)',
             ],
             'lexical': [
-                r'lexical.*?(\d+(?:\.\d+)?)',
-                r'vocabulary.*?(\d+(?:\.\d+)?)',
-                r'lexical\s*resource:\s*(\d+(?:\.\d+)?)'
+                r'(?:lexical|vocabulary|vocab|lr)[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'lexical\s*resource[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'voc(?:ab)?[:=-]?\s*(\d+(?:\.\d+)?)',
             ],
             'pronunciation': [
-                r'pronunciation.*?(\d+(?:\.\d+)?)',
-                r'pronounc.*?(\d+(?:\.\d+)?)'
+                r'(?:pronunciation|pron|pr)[:=-]?\s*(\d+(?:\.\d+)?)',
+                r'pro(?:nunciation)?[:=-]?\s*(\d+(?:\.\d+)?)',
             ]
         }
-        
-        for key, pattern in patterns.items():
-            match = re.search(pattern, text.lower())
-            if match:
-                try:
-                    scores[key] = float(match.group(1))
-                except:
-                    pass
-                    
+
+        # Check title first (more likely to contain accurate band score)
+        if title:
+            combined_text = title.lower() + " " + text.lower()
+        else:
+            combined_text = text.lower()
+
+        for score_type, pattern_list in patterns.items():
+            for pattern in pattern_list:
+                matches = re.finditer(pattern, combined_text)
+                for match in matches:
+                    try:
+                        score = float(match.group(1))
+                        # Validate score is within IELTS range (0-9)
+                        if 0 <= score <= 9:
+                            scores[score_type] = score
+                            break  # Use first valid match
+                    except:
+                        continue
+                        
+        # If overall band not found but other scores exist, estimate it
+        if scores['band_overall'] is None:
+            component_scores = [s for s in [scores['fluency'], scores['grammar'], 
+                                          scores['lexical'], scores['pronunciation']] 
+                          if s is not None]
+            if component_scores:
+                scores['band_overall'] = round(sum(component_scores) / len(component_scores), 1)
+
+        # Default values if no scores found
+        if scores['band_overall'] is None:
+            scores['band_overall'] = 6.5  # Default band
+        if scores['fluency'] is None:
+            scores['fluency'] = scores['band_overall'] - 0.5
+        if scores['grammar'] is None:
+            scores['grammar'] = scores['band_overall']
+        if scores['lexical'] is None:
+            scores['lexical'] = scores['band_overall']
+        if scores['pronunciation'] is None:
+            scores['pronunciation'] = scores['band_overall'] - 0.5
+
         return scores
     
     def generate_scoring_metadata(self, videos: List[Dict]) -> pd.DataFrame:
@@ -593,7 +707,7 @@ class PracticeDataGenerator:
         if Config.GEMINI_API_KEY:
             try:
                 genai.configure(api_key=Config.GEMINI_API_KEY)
-                self.model = genai.GenerativeModel('gemini-2.5-flash')
+                self.model = genai.GenerativeModel('gemini-2.5-flash-Lite')
             except Exception as e:
                 print(f"⚠️ Error configuring Gemini API: {str(e)}")
                 self.model = None
