@@ -72,11 +72,17 @@ class Config:
     
     # API Keys - List of backup keys
     API_KEYS = [
-        "AIzaSyDFGQcZ3VYKHwGysehBjXBrOFeHQm6c1Ac",  # Primary key
-        "AIzaSyASjPnUig5_Y_MC9zi5Wd7lX0if4eKiVqM",  # Backup key 1
-        "AIzaSyBeMGWuSUrpmzTeGHNFv-yS8Qpg0QhOiOo",  # Backup key 2
-        "AIzaSyCxXHx62MdMUEHhqr_bwqhRiNUQ_kB9ESY",  # Backup key 3
+        "",  # Primary key
+        "",  # Backup key 1
+        "",  # Backup key 2
+        "",  # Backup key 3
     ]
+    
+    # API Rate Limits and Batch Settings
+    MAX_GEMINI_REQUESTS_PER_MINUTE = 60
+    GEMINI_BATCH_SIZE = 10
+    GEMINI_REQUEST_DELAY = 1.0  # seconds between requests
+    GEMINI_BATCH_DELAY = 2.0    # seconds between batches
     
     _current_key_index = 0
     
@@ -90,7 +96,7 @@ class Config:
         """Rotate to next API key"""
         cls._current_key_index = (cls._current_key_index + 1) % len(cls.API_KEYS)
         return cls.get_api_key()
-    GEMINI_API_KEY = "AIzaSyDFGQcZ3VYKHwGysehBjXBrOFeHQm6c1Ac"  
+    GEMINI_API_KEY = "INPUT YOU API"  
     
     # YouTube search queries
     YOUTUBE_QUERIES = [
@@ -272,18 +278,41 @@ class ScoringDataCollector:
         return videos
     
     def get_youtube_transcript(self, video_id: str) -> Optional[str]:
-        """Get transcript from YouTube"""
+        """Get transcript from YouTube or generate it from audio using Whisper"""
+        transcript_path = Config.SCORING_DIR / "transcripts" / f"{video_id}.txt"
+        
+        # First try to get transcript from YouTube
         try:
             transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
             full_text = " ".join([t['text'] for t in transcript_list])
             
             # Save transcript
-            transcript_path = Config.SCORING_DIR / "transcripts" / f"{video_id}.txt"
             with open(transcript_path, 'w', encoding='utf-8') as f:
                 f.write(full_text)
                 
+            print(f"    ✅ Got transcript from YouTube")
             return full_text
-        except:
+        except Exception as e:
+            print(f"    ⚠️ No YouTube transcript available: {str(e)}")
+            
+        # If YouTube transcript not available, try using Whisper on the audio file
+        try:
+            audio_path = Config.SCORING_DIR / "audio" / f"{video_id}.wav"
+            if audio_path.exists():
+                print(f"    🎯 Generating transcript using Whisper...")
+                full_text = self.transcribe_audio(str(audio_path))
+                
+                # Save transcript
+                with open(transcript_path, 'w', encoding='utf-8') as f:
+                    f.write(full_text)
+                    
+                print(f"    ✅ Generated transcript using Whisper")
+                return full_text
+            else:
+                print(f"    ⚠️ Audio file not found: {audio_path}")
+                return None
+        except Exception as e:
+            print(f"    ⚠️ Error generating transcript with Whisper: {str(e)}")
             return None
     
     def transcribe_audio(self, audio_path: str) -> str:
@@ -1018,13 +1047,49 @@ class IELTSDatasetBuilder:
         self.scoring_collector = ScoringDataCollector()
         self.practice_generator = PracticeDataGenerator()
         
-    def build_complete_dataset(self, 
-                              download_videos: bool = True,
-                              max_videos: int = 5,
-                              generate_practice: bool = True):
+    def check_missing_transcripts(self):
+        """Check for audio files without transcripts and generate them"""
+        print("🔍 Checking for missing transcripts...")
+        
+        # Get all audio files
+        audio_files = list(Config.SCORING_DIR.glob(f"audio/*.{Config.AUDIO_FORMAT}"))
+        total_audio = len(audio_files)
+        
+        if total_audio == 0:
+            print("No audio files found.")
+            return
+            
+        missing_transcripts = []
+        for audio_file in audio_files:
+            video_id = audio_file.stem
+            transcript_path = Config.SCORING_DIR / "transcripts" / f"{video_id}.txt"
+            
+            if not transcript_path.exists():
+                missing_transcripts.append(video_id)
+                
+        print(f"\nFound {len(missing_transcripts)} audio files without transcripts out of {total_audio} total files.")
+        
+        if missing_transcripts:
+            print("\n📝 Generating missing transcripts...")
+            for video_id in tqdm(missing_transcripts, desc="Generating transcripts"):
+                self.scoring_collector.get_youtube_transcript(video_id)
+                
+        return len(missing_transcripts)
+    
+    def build_complete_dataset(self):
         """Build complete IELTS Speaking dataset"""
         print("🚀 Starting IELTS Speaking Dataset Builder")
         print("=" * 50)
+        
+        # Get user input for configuration
+        download_videos = input("Download new videos? (y/n): ").lower() == 'y'
+        if download_videos:
+            max_videos = int(input("How many videos to download? (1-20): "))
+            max_videos = max(1, min(20, max_videos))  # Limit between 1-20
+        else:
+            max_videos = 0
+            
+        generate_practice = input("Generate practice dataset? (y/n): ").lower() == 'y'
         
         # Part A: Scoring Dataset
         scoring_df = None
@@ -1152,25 +1217,32 @@ def validate_api_keys():
 
 def main():
     """Main execution function"""
-    # Setup
-    setup_environment()
-    validate_api_keys()
-    
-    # Build dataset
-    builder = IELTSDatasetBuilder()
-    
-    # Configuration
-    config = {
-        'download_videos': true,  # Set to False to skip video download
-        'max_videos': 3,         # Number of videos to download
-        'generate_practice': True # Set to False to skip practice generation
-    }
-    
-    # Build
-    builder.build_complete_dataset(**config)
-    
-    print("\n✅ Dataset building complete!")
-    print(f"📁 Output directory: {Config.BASE_DIR}")
+    try:
+        # Setup
+        setup_environment()
+        validate_api_keys()
+        
+        # Build dataset
+        builder = IELTSDatasetBuilder()
+        
+        # Check for missing transcripts first
+        missing_count = builder.check_missing_transcripts()
+        if missing_count > 0:
+            print(f"\n✅ Generated {missing_count} missing transcripts")
+        
+        # Build dataset with user configuration
+        builder.build_complete_dataset()
+        
+        print("\n✅ Dataset building complete!")
+        print(f"📁 Output directory: {Config.BASE_DIR}")
+        
+    except KeyboardInterrupt:
+        print("\n\n⚠️ Process interrupted by user")
+    except Exception as e:
+        print(f"\n\n❌ Error: {str(e)}")
+    finally:
+        # Save any pending changes
+        print("\n🔄 Cleaning up...")
 
 if __name__ == "__main__":
     main()
