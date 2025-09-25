@@ -1,0 +1,8 @@
+Question: Where is your hometown?
+Band: 6.0
+Topic: Hometown
+
+Sample Answer:
+"Well, um, my hometown is called, uh, Bandung. It's in Indonesia, on the island of Java, actually. It's in the western part of the island, a little bit south of Jakarta, the capital city. So, it's a big city, but it's famous for its cool weather, because it's in the mountains, so, yeah. I think it's a nice place, very green."
+
+Keywords: it's, island, city, well, hometown, called, bandung, indonesia, java, actually

@@ -1,0 +1,8 @@
+Question: Where is your hometown?
+Band: 8.0
+Topic: Hometown
+
+Sample Answer:
+Well, my hometown is Chengdu, which is a bustling metropolis situated in the southwestern part of China. It's renowned globally, not just for being the natural habitat of giant pandas, but also for its incredibly vibrant tea culture and famously spicy cuisine. To top it all off, it truly feels like a second home to me.
+
+Keywords: well, hometown, chengdu, which, bustling, metropolis, situated, southwestern, part, china

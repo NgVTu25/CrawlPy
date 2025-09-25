@@ -1,0 +1,8 @@
+Question: Where is your hometown?
+Band: 7.0
+Topic: Hometown
+
+Sample Answer:
+"Well, my hometown is called Chengdu, and it's a major city situated in the western part of China. It's quite a bustling place, you know, known especially for its delicious spicy cuisine and, of course, the giant pandas. It's also, I guess, a very green city with lots of parks, so it's quite lively but also relaxing. Yeah, that's where I'm from."
+
+Keywords: it's, city, quite, also, well, hometown, called, chengdu, major, situated

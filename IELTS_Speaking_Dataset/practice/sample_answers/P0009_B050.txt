@@ -1,0 +1,8 @@
+Question: What sports are popular in your country?
+Band: 5.0
+Topic: Sports
+
+Sample Answer:
+Well, um, I think in my country, football is very, very popular. Many people like to watch it on TV, uh, especially the big games. And, uh, also basketball, many young people play basketball, uh, after school, I think. So, these two are the most popular, yeah.
+
+Keywords: think, very, popular, many, people, basketball, well, country, football, like

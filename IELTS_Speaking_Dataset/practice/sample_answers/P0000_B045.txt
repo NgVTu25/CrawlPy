@@ -1,0 +1,8 @@
+Question: Where is your hometown?
+Band: 4.5
+Topic: Hometown
+
+Sample Answer:
+Um... my hometown, it is... uh... in the north *from* my country, Vietnam. It's a small city, not too big. It's name is Haiphong. Uh... there *are* many... um... old buildings and some parks there. Many people working in industry. So, it is... uh... a bit busy, but I like it. It is very nice place *to* live.
+
+Keywords: it's, there, many, hometown, north, *from*, country, vietnam, small, city

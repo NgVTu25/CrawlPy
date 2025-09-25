@@ -1,0 +1,8 @@
+Question: Where is your hometown?
+Band: 5.0
+Topic: Hometown
+
+Sample Answer:
+Well, my hometown... um... it is a city. It is called... uh... Beijing. Yes, Beijing. It is very big. Um... that's where I live.
+
+Keywords: beijing, well, hometown, city, called, very, that's, where, live

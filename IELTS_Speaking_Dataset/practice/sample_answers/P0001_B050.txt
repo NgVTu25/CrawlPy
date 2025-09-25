@@ -1,0 +1,8 @@
+Question: Do you like your hometown?
+Band: 5.0
+Topic: Hometown
+
+Sample Answer:
+Well, um, yes, I like my hometown. It's... it's a small place, not big city. So, um, it's very quiet. Not too much, um, things to do, but I... I like it because it's peaceful. Yes.
+
+Keywords: it's, like, well, hometown, small, place, city, very, quiet, much

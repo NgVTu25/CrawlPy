@@ -1,0 +1,8 @@
+Question: Do you like sports?
+Band: 5.5
+Topic: Sports
+
+Sample Answer:
+Um... I think like is okay. Sometimes I... you know... use it, and yes, it's useful for me. I like it because... um... it helps me do things.
+
+Keywords: like, think, okay, sometimes, know, it's, useful, because, helps, things

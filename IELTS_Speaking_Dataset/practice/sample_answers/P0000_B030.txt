@@ -1,0 +1,8 @@
+Question: Where is your hometown?
+Band: 3.0
+Topic: Hometown
+
+Sample Answer:
+Um, my hometown is... uh... in a place called... called Hanoi. It is the capital city of Vietnam. So, it's very big and has many people. I... uh... I like it because my family live there. And also, um, there are many... many foods. So, I think it is good place.
+
+Keywords: many, place, called, there, hometown, hanoi, capital, city, vietnam, it's

@@ -1,0 +1,8 @@
+Question: Do you like sports?
+Band: 5.0
+Topic: Sports
+
+Sample Answer:
+Well, um, yes, I think I like sports. I mean, it’s good for you, you know? I usually, um, watch football on TV sometimes. But I don’t really play much myself. It’s more just for watching, I guess.
+
+Keywords: it’s, well, think, like, sports, mean, good, know, usually, watch

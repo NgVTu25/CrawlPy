@@ -1,0 +1,8 @@
+Question: What sports are popular in your country?
+Band: 4.5
+Topic: Sports
+
+Sample Answer:
+Um... I think sports is okay. Sometimes I... you know... use it, and yes, it's useful for me. I like it because... um... it helps me do things.
+
+Keywords: think, sports, okay, sometimes, know, it's, useful, like, because, helps

@@ -1,0 +1,8 @@
+Question: Do you like cooking?
+Band: 5.0
+Topic: Food
+
+Sample Answer:
+Well, um, not really, I think. I don't, uh, cook very much. It's, um, a bit difficult for me, you know. I prefer, uh, to eat food my mother cooks. Or sometimes, I eat outside. Yes, I don't cook often.
+
+Keywords: don't, cook, well, really, think, very, much, it's, difficult, know

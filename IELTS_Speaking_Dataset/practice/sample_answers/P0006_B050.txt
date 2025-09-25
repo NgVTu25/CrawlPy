@@ -1,0 +1,8 @@
+Question: What's your favorite food?
+Band: 5.0
+Topic: Food
+
+Sample Answer:
+Well, um, my favourite food... I think is, uh, pizza. Yes, I really like pizza. It's very, um, tasty. I like to eat it with my family or, um, friends. It has cheese and, you know, some meat maybe. So, yeah, pizza is my favourite.
+
+Keywords: pizza, favourite, like, well, food, think, really, it's, very, tasty

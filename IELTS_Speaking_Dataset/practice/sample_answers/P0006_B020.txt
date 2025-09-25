@@ -1,0 +1,8 @@
+Question: What's your favorite food?
+Band: 2.0
+Topic: Food
+
+Sample Answer:
+Um... I think what's is okay. Sometimes I... you know... use it, and yes, it's useful for me. I like it because... um... it helps me do things.
+
+Keywords: think, what's, okay, sometimes, know, it's, useful, like, because, helps
